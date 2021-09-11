@@ -34,3 +34,17 @@ The makefile is generated with
 To compile, type
 
 `make`
+
+## Run 
+
+To run the project, open two terminals in the src folder, and run the command 
+
+`./screen`
+
+The process will return its PID.
+
+On the second terminal, run the command 
+
+`./Pomme-C <PID>`
+
+and replace the <PID> by the screen pid you just copied.
