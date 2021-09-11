@@ -19,7 +19,7 @@ int disk_init()
     // "Open a binary file in append mode for reading or updating at the end of the file. fopen() creates the file if it does not exist."
     // https://www.ibm.com/docs/en/zos/2.4.0?topic=functions-fopen-open-file
     // We use binary because we store raw data (not structured, not text, not images, it can be whatever)
-    file = fopen("hdd", "ab+");
+    file = fopen("hdd", "wb+");
 
     if (!file) {
         fprintf(stderr, "unable to open file");
@@ -64,7 +64,7 @@ int disk_write_block(int blockno, struct block * block)
         return -1;
 
     // write the block
-    if (BLOCK_SIZE != fwrite(block, 1, BLOCK_SIZE, hdd.file)) // write block 1 time on BLOCK_SIZE bytes in the file hdd.file
+    if (1 != fwrite(block, BLOCK_SIZE, 1, hdd.file)) // write block 1 time on BLOCK_SIZE bytes in the file hdd.file
         return -1;
 
     // force write to file (in case of buffering)
@@ -96,7 +96,7 @@ int disk_read_block(int blockno, struct block * block)
         return -1;
 
     // read the block
-    if (BLOCK_SIZE != fread(block, 1, BLOCK_SIZE, hdd.file))
+    if (1 != fread(block, BLOCK_SIZE, 1, hdd.file))
         return -1;
 
     return 0;
@@ -125,7 +125,7 @@ int disk_write_inode(int inodeno, struct inode * inode)
         return -1;
 
     // write inode
-    if (sizeof(struct inode) != fwrite(inode, 1, sizeof(struct inode), hdd.file))
+    if (1 != fwrite(inode, sizeof(struct inode), 1, hdd.file))
         return -1;
 
     // force write to file (in case of buffering)
@@ -157,7 +157,7 @@ int disk_read_inode(int inodeno, struct inode * inode)
         return -1;
 
     // read inode
-    if (sizeof(struct inode) != fread(inode, 1, sizeof(struct inode), hdd.file))
+    if (1 != fread(inode, sizeof(struct inode), 1, hdd.file))
         return -1;
 
     return 0;
@@ -177,7 +177,7 @@ int disk_write_block_bitmap(char * bitmap)
         return -1;
 
     // read inode
-    if (N_BLOCKS != fwrite(bitmap, 1, N_BLOCKS, hdd.file))
+    if (1 != fwrite(bitmap, N_BLOCKS, 1, hdd.file))
         return -1;
 
     return 0;
@@ -196,7 +196,7 @@ int disk_write_inode_bitmap(char * bitmap)
         return -1;
 
     // read inode
-    if (N_INODE != fwrite(bitmap, 1, N_INODE, hdd.file))
+    if (1 != fwrite(bitmap, N_INODE, 1, hdd.file))
         return -1;
 
     return 0;

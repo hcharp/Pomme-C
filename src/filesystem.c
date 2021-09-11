@@ -61,7 +61,7 @@ static int write_dir(int blockno, struct dir * d)
  * @return index of entry or -1 if entry no found
  */
 static int find_entry(char * name, struct dir * d)
-{
+{       
     int i;
     for (i = 0; i < d->n_entry; i++) {
         if (strcmp(d->entries[i].name, name) == 0) {
@@ -71,6 +71,13 @@ static int find_entry(char * name, struct dir * d)
     return -1;
 }
 
+static int display_entries(char * name, struct dir * d)
+{       
+    int i;
+    for (i = 0; i < d->n_entry; i++) {
+        printf("element : %s\n", d->entries[i].name);
+    }
+}
 
 int fs_init()
 {
@@ -81,7 +88,7 @@ int fs_init()
     //     return -1;
     // }
 
-    fs_format();
+    //fs_format();
 
     // create root @ inode 0, data stored in block 0
     fs.inodes[0].type = DIR;
@@ -105,7 +112,7 @@ int fs_init()
         disk_write_inode(0, &fs.inodes[0]) < 0      ||
         disk_write_inode_bitmap(fs.free_inodes) < 0 ||
         disk_write_block_bitmap(fs.free_blocks) < 0) {
-        fprintf(stderr, "unable to write to disk");
+        fprintf(stderr, "unable to write to disk\n");
         return -1;
     }
 
@@ -175,8 +182,7 @@ int fs_mkdir(char * name, int parent_inodeno)
         return -1;
     }
     // check if we can add a new entry
-    parent_dir.n_entry++;
-    if (parent_dir.n_entry >= MAX_DIRENT) {
+    if (parent_dir.n_entry+1 >= MAX_DIRENT) {
         fprintf(stderr, "number max of entry reached");
         return -1;
     }
@@ -188,6 +194,7 @@ int fs_mkdir(char * name, int parent_inodeno)
     // create new entry and append it at the end of the parent directory
     parent_dir.entries[parent_dir.n_entry].inode_nb = inodeno;
     strcpy(parent_dir.entries[parent_dir.n_entry].name, name);
+    parent_dir.n_entry++;
 
     struct inode inode = {.type = DIR, .blocks = {-1}};
     inode.blocks[0] = blockno;
@@ -240,9 +247,9 @@ int fs_create(char * name, int parent_inodeno)
         fprintf(stderr, "unable to read dir");
         return -1;
     }
+
     // check if we can add a new entry
-    parent_dir.n_entry++;
-    if (parent_dir.n_entry >= MAX_DIRENT) {
+    if (parent_dir.n_entry+1 >= MAX_DIRENT) {
         fprintf(stderr, "number max of entry reached");
         return -1;
     }
@@ -254,6 +261,7 @@ int fs_create(char * name, int parent_inodeno)
     // create new entry and append it at the end of the parent directory
     parent_dir.entries[parent_dir.n_entry].inode_nb = inodeno;
     strcpy(parent_dir.entries[parent_dir.n_entry].name, name);
+    parent_dir.n_entry++;
 
     struct inode inode = {.type = BIN, .blocks = {-1}};
     fs.inodes[inodeno] = inode;
@@ -266,6 +274,7 @@ int fs_create(char * name, int parent_inodeno)
         fprintf(stderr, "unable to write to disk");
         return -1;
     }
+
     return 0;
 }
 
@@ -277,22 +286,21 @@ int fs_create(char * name, int parent_inodeno)
 int fs_rm(char * name, int parent_inodeno)
 {
     int entry_idx, inodeno, parent_blockno, blockno,  i;
-    struct dir * parent_dir = NULL;
+    struct dir parent_dir;
 
     parent_blockno = fs.inodes[parent_inodeno].blocks[0];
-    if (read_dir(parent_blockno, parent_dir) < 0) {
+    if (read_dir(parent_blockno, &parent_dir) < 0) {
         fprintf(stderr, "unable to read dir");
         return -1;
     }
-
-    entry_idx = find_entry(name, parent_dir);
+    entry_idx = find_entry(name, &parent_dir);
     if (entry_idx < 0) {
         fprintf(stderr, "file not found");
         return -1;
     }
 
     // free the blocks associated with the file
-    inodeno = parent_dir->entries[entry_idx].inode_nb;
+    inodeno = parent_dir.entries[entry_idx].inode_nb;
     for (i = 0; i < N_BLOCKS; i++) {
         blockno = fs.inodes[inodeno].blocks[i];
         if (blockno > 0) {
@@ -304,17 +312,31 @@ int fs_rm(char * name, int parent_inodeno)
     fs.free_inodes[inodeno] = 0;
 
     // move all the entries to account for this deletion
-    for (i = entry_idx; i < parent_dir->n_entry - 1; i++) {
-        parent_dir->entries[i] = parent_dir->entries[i+1];
+    for (i = entry_idx; i < parent_dir.n_entry - 1; i++) {
+        parent_dir.entries[i] = parent_dir.entries[i+1];
     }
-    parent_dir->n_entry--;
+    parent_dir.n_entry--;
 
-    if (write_dir(parent_blockno, parent_dir) < 0   ||
+    if (write_dir(parent_blockno, &parent_dir) < 0   ||
         disk_write_block_bitmap(fs.free_blocks) < 0 ||
         disk_write_inode_bitmap(fs.free_inodes) < 0) {
         fprintf(stderr, "unable to write to disk");
         return -1;
     }
 
+    return 0;
+}
+
+int fs_search(int parent_inodeno){
+    int entry_idx, inodeno, parent_blockno, blockno,  i;
+    struct dir parent_dir;
+    char * name = "9875147986";
+
+    parent_blockno = fs.inodes[parent_inodeno].blocks[0];
+    if (read_dir(parent_blockno, &parent_dir) < 0) {
+        fprintf(stderr, "unable to read dir\n");
+        return -1;
+    }
+    display_entries(name, &parent_dir);
     return 0;
 }
