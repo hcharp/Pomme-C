@@ -19,7 +19,8 @@ int disk_init()
     // "Open a binary file in append mode for reading or updating at the end of the file. fopen() creates the file if it does not exist."
     // https://www.ibm.com/docs/en/zos/2.4.0?topic=functions-fopen-open-file
     // We use binary because we store raw data (not structured, not text, not images, it can be whatever)
-    file = fopen("hdd", "wb+");
+
+        file = fopen("hdd", "rb+");
 
     if (!file) {
         fprintf(stderr, "unable to open file");

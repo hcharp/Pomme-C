@@ -258,6 +258,7 @@ int fs_create(char * name, int parent_inodeno)
         fprintf(stderr, "name too big");
         return -1;
     }
+
     // create new entry and append it at the end of the parent directory
     parent_dir.entries[parent_dir.n_entry].inode_nb = inodeno;
     strcpy(parent_dir.entries[parent_dir.n_entry].name, name);
@@ -330,7 +331,6 @@ int fs_rm(char * name, int parent_inodeno)
 char * fs_ls(int parent_inodeno){
     int entry_idx, inodeno, parent_blockno, blockno,  i;
     struct dir parent_dir;
-
     parent_blockno = fs.inodes[parent_inodeno].blocks[0];
     if (read_dir(parent_blockno, &parent_dir) < 0) {
         fprintf(stderr, "unable to read dir\n");
@@ -338,7 +338,6 @@ char * fs_ls(int parent_inodeno){
     }
     static char res[BLOCK_SIZE];
     strcat(res, "INODE - NAME\n");
-
     for (int i = 0; i < parent_dir.n_entry; i++){
         char tmp[1000];
         sprintf(tmp, "%d - %s\n", parent_dir.entries[i].inode_nb, parent_dir.entries[i].name);
