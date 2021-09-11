@@ -1,78 +1,47 @@
+#include <sys/types.h>
+#include <sys/ipc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include <time.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <signal.h>
+#define KEY 42 // shared memory key
 
-
-// execute a C programm
-// wait for data to display
-
-int main()
+// action on signal received ( = writing on shmem)
+void action_signal(int num)
 {
-    printf("Pomme-C Terminal");
-    printf("Enter a command. Type 'help' to get a list of avalaible commands.");
 
-    char cmd[100];
+    if (num == SIGUSR1)
+    {
+        //SHARED MEMORY
+        char *memory; //memory pointer
+        int shmemid;  // shmem id
+
+        shmemid = shmget((key_t)KEY, 0, 0); //shmem create
+        memory = shmat(shmemid, NULL, 0);   //shmem attach
+
+        printf("%s\n", memory);
+        shmdt(memory);
+    }
+}
+
+int main(int argc, char const *argv[])
+{
+    //SIGNALS
+    struct sigaction action;
+    action.sa_handler = action_signal;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = SA_RESTART;
+
+    printf("Pomme-C Terminal\nPID : %d\nEnter a command. Type 'help' to get a list of avalaible commands.", getpid());
 
     while (1)
     {
-        printf("$ ");
-        fflush(stdin);
-        scanf("%s", cmd);
-
-        if (strcmp (cmd, "help") == 0)
+        if (sigaction(SIGUSR1, &action, NULL) == -1)
         {
-            printf("\n");
-            printf("create <filename> <mode> .................. creates a file and displays its inode");
-            printf("open <filename> <mode> .................... opens a file or create it and displays its inode");
-            printf("close <filename> .......................... closes a file"); // TODO: create a function that finds a filename with its inode
-            printf("write <filename> .......................... writes in a file");
-            printf("mkdir <filename> .......................... creates a directory");
-            printf("rmdir <filename> .......................... deletes an empty directory");
-            printf("link <filename> <filename> ................ makes a link between a new file and an existing one");
-            printf("unlink <filename> ......................... deletes a link");
+            printf("Impossible d'appeler sigaction\n");
+            exit(EXIT_FAILURE);
         }
-
-        else if (strcmp (cmd, "create") == 0)
-        {
-            // execute the corresponding C programm
-        }
-
-        else if (strcmp (cmd, "open") == 0)
-        {
-            // execute the corresponding C programm
-        }
-
-        else if (strcmp (cmd, "close") == 0)
-        {
-            // execute the corresponding C programm
-        }
-
-        else if (strcmp (cmd, "write") == 0)
-        {
-            // execute the corresponding C programm
-        }
-
-        else if (strcmp (cmd, "mkdir") == 0)
-        {
-            // execute the corresponding C programm
-        }
-
-        else if (strcmp (cmd, "rmdir") == 0)
-        {
-            // execute the corresponding C programm
-        }
-        else if (strcmp (cmd, "link") == 0)
-        {
-            // execute the corresponding C programm
-        }
-        else if (strcmp (cmd, "unlink") == 0)
-        {
-            // execute the corresponding C programm
-        }
-
-
     }
 }
