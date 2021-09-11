@@ -22,11 +22,15 @@ We first needed to have a functional project, then to better it.
 Instead of following the suggested tutorial (http://gl.developpez.com/tutoriel/outil/makefile/), we were advised to use cmake to generate a makefile as follow:
 
 In the project directory, type
+
 `mkdir build`
+
 `cd build`
 
 The makefile is generated with
+
 `cmake ..`
 
 To compile, type
+
 `make`
