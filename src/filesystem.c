@@ -327,16 +327,22 @@ int fs_rm(char * name, int parent_inodeno)
     return 0;
 }
 
-int fs_search(int parent_inodeno){
+char * fs_ls(int parent_inodeno){
     int entry_idx, inodeno, parent_blockno, blockno,  i;
     struct dir parent_dir;
-    char * name = "9875147986";
 
     parent_blockno = fs.inodes[parent_inodeno].blocks[0];
     if (read_dir(parent_blockno, &parent_dir) < 0) {
         fprintf(stderr, "unable to read dir\n");
-        return -1;
+        return NULL;
     }
-    display_entries(name, &parent_dir);
-    return 0;
+    static char res[BLOCK_SIZE];
+    strcat(res, "INODE - NAME\n");
+
+    for (int i = 0; i < parent_dir.n_entry; i++){
+        char tmp[1000];
+        sprintf(tmp, "%d - %s\n", parent_dir.entries[i].inode_nb, parent_dir.entries[i].name);
+        strcat(res, tmp);
+    }
+    return res;
 }
