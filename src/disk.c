@@ -20,7 +20,7 @@ int disk_init()
     // https://www.ibm.com/docs/en/zos/2.4.0?topic=functions-fopen-open-file
     // We use binary because we store raw data (not structured, not text, not images, it can be whatever)
 
-        file = fopen("hdd", "rb+");
+        file = fopen("hdd", "wb+");
 
     if (!file) {
         fprintf(stderr, "unable to open file");
