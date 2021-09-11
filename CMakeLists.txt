@@ -7,8 +7,8 @@ add_executable(test-filesystem) # test-filesystem is created with the command ma
 
 # in test-filesystem, we use these sources:
 target_sources(test-filesystem PRIVATE
-    file_tree/main.c
-    file_tree/disk.c
-    file_tree/filesystem.c
+    src/disk.c
+    src/filesystem.c
+    src/shell.c
     )
 
