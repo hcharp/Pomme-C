@@ -53,7 +53,8 @@ char *exeCmd(char *command)
             rmdir <filename> .......................... deletes an empty directory\n \
             link <filename> <filename> ................ makes a link between a new file and an existing one\n \
             unlink <filename> ......................... deletes a link\n \
-            ls ........................................ displays the Inode and the name of the files in the current directory \n\n";
+            ls <directory> ............................ displays the Inode and the name of the files in the current directory or the specified one\n \
+            cd <directory> ............................ change active directory to the specified one\n\n";
     }else if(strcmp(ptr, "mkdir") == 0){
         ptr = strtok(NULL, " ");
         if (ptr == NULL)
@@ -88,10 +89,8 @@ char *exeCmd(char *command)
     }
     else if (strcmp(ptr, "rm") == 0 || strcmp(ptr, "rmdir") == 0)
     {
-        printf("in RM\n");
         // Get first parameter
         ptr = strtok(NULL, " ");
-        printf("%s\n", ptr);
         if (ptr == NULL)
         {
             return "ERROR : no file specified in parameters\n";
@@ -106,9 +105,28 @@ char *exeCmd(char *command)
     }
     else if (strcmp(ptr, "ls") == 0)
     {
-        printf("in ls\n");
         char *ret = fs_ls(current_node);
+        printf("ls : %s\n", ret);
         return ret;
+    }
+    else if(strcmp(ptr, "cd") == 0){
+        printf("in cd");
+        // cut arg
+        ptr = strtok(NULL, " ");
+        printf("tok : %s\n", ptr);
+        if (ptr == NULL){
+            return "ERROR : no parameter specified\n";
+        }else{
+            printf("in else");
+            int inode = fs_isDir(current_node, ptr);
+            if(inode == -1){
+                return "ERROR : not a directory\n";
+            }else{
+                current_node = inode;
+                printf("curr : %d", current_node);
+                return "\n";
+            }
+        }
     }
     else
     {
@@ -254,25 +272,20 @@ int main(int argc, char *argv[])
 
         // kernel
         // loops until sig from parent
-        printf("ici\n");
 
         kill(getpid(), SIGSTOP); // stops child proc
         while (1)
         {
-            printf("la bas\n");
             // execute the command and get the result
             // temp command
             char *tmp;
             read(fd[0], tmp, MAX_LENGTH);
             tmp[strcspn(tmp, "\n")] = 0;
-            printf("tmp : %s\n", tmp);
 
-            char *res;
-
+            char *res = {'\0'};
             res = exeCmd(tmp);
 
-            printf("res fils : %s\n", res);
-            printf("strlen fils : %ld\n", strlen(res));
+            printf("length : %ld\n", strlen(res));
 
             // send back to parent
             write(fd[1], res, strlen(res));
@@ -305,8 +318,6 @@ int main(int argc, char *argv[])
                 exit(0);
             }
 
-            printf("commande : %s\n", cmd);
-
             // send command to child
             write(fd[1], cmd, strlen(cmd));
             kill(child, SIGCONT); // resume the child
@@ -321,13 +332,10 @@ int main(int argc, char *argv[])
             char ret[MAX_LENGTH]; //[returnSize + 1];
 
             size_t s = read(fd[0], ret, MAX_LENGTH);
-            printf("%ld", strlen(ret));
             ret[strlen(ret)] = '\0';
 
             if (s > 0)
             {
-                printf("Retour de la commande %s : %s | %ld\n", cmd, ret, s);
-
                 // send to screen
                 strcpy(memory, ret);
 

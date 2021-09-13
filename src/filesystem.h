@@ -66,5 +66,9 @@ int fs_mkdir(char * name, int parent_inodeno);
 int fs_create(char * name, int parent_inodeno);
 // remove a directory or file
 int fs_rm(char * name, int parent_inodeno);
-// temp ls
+// ls
 char* fs_ls(int parent_inodeno);
+// check if type is dir
+int fs_isDir(int parent_inodeno, char *name);
+// Check a path and retuns the last inode
+int fs_multiDir(int parent_inodeno, char *path);
